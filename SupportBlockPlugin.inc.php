@@ -78,12 +78,12 @@ class SupportBlockPlugin extends BlockPlugin {
 	}
 
 	/**
-	 * Hook callback: register output filter to add sidebar link to
-	 * management dashboard pages
-	 * @param $hookName string
-	 * @param $args array
-	 * @return boolean
-	 */
+ * Hook callback: register output filter to add sidebar link to
+ * management dashboard pages
+ * @param $hookName string
+ * @param $args array
+ * @return boolean
+ */
 	function handleTemplateDisplay($hookName, $args) {
 		$templateMgr = $args[0];
 		$template = $args[1];
@@ -93,33 +93,33 @@ class SupportBlockPlugin extends BlockPlugin {
 		// Si estamos en una página de administración o gestión
 		if (strpos($template, 'management') !== false || 
 			strpos($template, 'admin') !== false || 
-			strpos($template, 'settings') !== false) {
+			strpos($template, 'settings') !== false || 
+			strpos($template, 'submission') !== false) {
 			
-			// Añadir una referencia al estilo CSS
-			$templateMgr->addStyleSheet(
-				'supportBlockStyles',
-				$this->getRequest()->getBaseUrl() . '/' . $this->getPluginPath() . '/styles/supportBlock.css',
-				array('contexts' => array('backend'))
+			// Añadir el script JavaScript
+			$request = Application::get()->getRequest();
+			$baseUrl = $request->getBaseUrl();
+			$pluginPath = $this->getPluginPath();
+			
+			// Registrar el script y los estilos
+			$templateMgr->addJavaScript(
+				'supportBlockScript',
+				$baseUrl . '/' . $pluginPath . '/js/supportMenu.js',
+				array('contexts' => 'backend')
 			);
 			
-			// Si estamos en una página específica, intentar insertar directamente
-			if (strpos($template, 'pkp/templates/management/context.tpl') !== false ||
-				strpos($template, 'pkp/templates/management/settings/workflow.tpl') !== false) {
-				
-				$supportUrl = 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3';
-				$templateMgr->assign('supportUrl', $supportUrl);
-				
-				// Agregar contenido directamente al sidebar
-				$output = $templateMgr->fetch($this->getTemplateResource('supportBlockAdmin.tpl'));
-				$templateMgr->assign('supportBlockOutput', $output);
-				
-				error_log("SupportBlock: Contenido agregado directamente a la plantilla: " . $template);
-			}
+			$templateMgr->addStyleSheet(
+				'supportBlockStyles',
+				$baseUrl . '/' . $pluginPath . '/css/supportMenu.css',
+				array('contexts' => 'backend')
+			);
+			
+			error_log("SupportBlock: Script y estilos añadidos para la plantilla: " . $template);
 		}
 		
 		return false;
 	}
-    
+
     /**
 	 * Insert the support block in admin area
 	 * @param $hookName string

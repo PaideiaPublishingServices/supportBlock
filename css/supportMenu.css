@@ -1,0 +1,35 @@
+/**
+ * @file plugins/blocks/supportBlock/css/supportMenu.css
+ *
+ * Copyright (c) 2023-2025 Paideia Studio
+ * Distributed under the GNU GPL v3.
+ *
+ * @brief Estilos para el menú de soporte
+ */
+
+ .support-menu-item {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    border-top: 1px solid #ddd;
+}
+
+.support-menu-link {
+    display: flex;
+    align-items: center;
+    color: #007ab2 !important;
+    text-decoration: none;
+    padding: 10px 16px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.support-menu-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+}
+
+.support-icon {
+    margin-right: 12px;
+    color: #007ab2;
+}
