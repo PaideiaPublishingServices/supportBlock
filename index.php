@@ -7,7 +7,7 @@
 /**
  * @file plugins/blocks/supportBlock/index.php
  *
- * Copyright (c) 2025 Paideia Studio
+ * Copyright (c) 2023-2025 Paideia Studio
  * Distributed under the GNU GPL v3.
  *
  * @ingroup plugins_blocks_supportBlock
@@ -17,6 +17,6 @@
 
 require_once('SupportBlockPlugin.inc.php');
 
-return new SupportBlockPlugin();
+return new \APP\plugins\blocks\supportBlock\SupportBlockPlugin();
 
 ?>
