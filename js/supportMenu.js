@@ -8,6 +8,9 @@
  */
 
 (function() {
+    // URL de soporte
+    const supportUrl = 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3';
+    
     // Función para crear el elemento de soporte
     function createSupportItem() {
         console.log('SupportBlock: Intentando insertar el menú de soporte...');
@@ -24,9 +27,6 @@
             console.log('SupportBlock: El menú de soporte ya existe');
             return true;
         }
-        
-        // URL de soporte
-        const supportUrl = 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3';
         
         // Crear el elemento de menú
         const supportItem = document.createElement('li');
@@ -45,28 +45,51 @@
         return true;
     }
     
-    // Función para intentar varias veces con un intervalo
-    function tryInsertSupport() {
-        let attempts = 0;
-        const maxAttempts = 10;
-        const interval = setInterval(function() {
-            if (createSupportItem() || attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.log('SupportBlock: Intento finalizado después de ' + attempts + ' intentos');
+    // Función principal para monitorear cambios y insertar el menú
+    function initSupportMenu() {
+        // Intentar insertar inmediatamente
+        createSupportItem();
+        
+        // También configurar un intervalo para intentar periódicamente
+        // Esto es útil para aplicaciones SPA que pueden recargar el DOM
+        setInterval(createSupportItem, 2000);
+        
+        // Monitorear cambios en la URL para SPA
+        let lastUrl = location.href;
+        const urlObserver = new MutationObserver(function() {
+            if (lastUrl !== location.href) {
+                lastUrl = location.href;
+                setTimeout(createSupportItem, 500);
             }
-            attempts++;
-        }, 500); // Intentar cada 500ms, hasta 10 veces (5 segundos total)
+        });
+        
+        urlObserver.observe(document, { subtree: true, childList: true });
+        
+        // Monitorear cambios en el DOM específicamente para el menú de navegación
+        const navObserver = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
+                    for (let i = 0; i < mutation.addedNodes.length; i++) {
+                        const node = mutation.addedNodes[i];
+                        if (node.classList && (node.classList.contains('app__nav') || 
+                            (node.querySelector && node.querySelector('.app__nav')))) {
+                            setTimeout(createSupportItem, 100);
+                            return;
+                        }
+                    }
+                }
+            });
+        });
+        
+        navObserver.observe(document.body, { childList: true, subtree: true });
+        
+        console.log('SupportBlock: Sistema de monitoreo inicializado');
     }
     
-    // Ejecutar cuando el DOM esté listo
+    // Iniciar cuando el DOM esté listo
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', tryInsertSupport);
+        document.addEventListener('DOMContentLoaded', initSupportMenu);
     } else {
-        tryInsertSupport();
-    }
-    
-    // También intentar cuando la página cambie mediante AJAX
-    if (typeof(document.pjax) !== 'undefined') {
-        document.pjax.on('pjax:success', tryInsertSupport);
+        initSupportMenu();
     }
 })();
