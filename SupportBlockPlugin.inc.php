@@ -118,11 +118,15 @@ class SupportBlockPlugin extends BlockPlugin {
 	}
     
 	/**
-	 * Get the template resource for this plugin.
-	 * @param $template string
-	 * @return string
-	 */
-	function getTemplateResource($template) {
+ * Get the template resource for this plugin.
+ * @param $template string|null
+ * @param $inCore boolean
+ * @return string
+ */
+	function getTemplateResource($template = null, $inCore = false) {
+		if ($inCore) {
+			return parent::getTemplateResource($template, $inCore);
+		}
 		return $this->getPluginPath() . '/templates/' . $template;
 	}
 }
