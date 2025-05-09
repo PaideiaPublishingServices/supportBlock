@@ -13,8 +13,6 @@
  * @brief Wrapper para el plugin de bloque de soporte.
  */
 
-// Usar ruta absoluta para incluir el archivo
 require_once(__DIR__ . '/SupportBlockPlugin.inc.php');
 
 return new \APP\plugins\blocks\supportBlock\SupportBlockPlugin();
-?>
