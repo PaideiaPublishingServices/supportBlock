@@ -19,7 +19,13 @@
             return false;
         }
         
-        // URL de soporte (debería ser inyectada por PHP, pero la hardcodeamos para prueba)
+        // Verificar si ya existe el elemento de soporte para evitar duplicados
+        if (document.querySelector('.support-menu-item')) {
+            console.log('SupportBlock: El menú de soporte ya existe');
+            return true;
+        }
+        
+        // URL de soporte
         const supportUrl = 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3';
         
         // Crear el elemento de menú
@@ -39,23 +45,28 @@
         return true;
     }
     
-    // Función para intentar varias veces
+    // Función para intentar varias veces con un intervalo
     function tryInsertSupport() {
         let attempts = 0;
-        const maxAttempts = 5;
+        const maxAttempts = 10;
         const interval = setInterval(function() {
             if (createSupportItem() || attempts >= maxAttempts) {
                 clearInterval(interval);
                 console.log('SupportBlock: Intento finalizado después de ' + attempts + ' intentos');
             }
             attempts++;
-        }, 1000);
+        }, 500); // Intentar cada 500ms, hasta 10 veces (5 segundos total)
     }
     
-    // Intentar cuando el DOM esté listo
+    // Ejecutar cuando el DOM esté listo
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', tryInsertSupport);
     } else {
         tryInsertSupport();
+    }
+    
+    // También intentar cuando la página cambie mediante AJAX
+    if (typeof(document.pjax) !== 'undefined') {
+        document.pjax.on('pjax:success', tryInsertSupport);
     }
 })();
