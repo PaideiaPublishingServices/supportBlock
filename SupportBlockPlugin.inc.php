@@ -48,6 +48,8 @@ class SupportBlockPlugin extends BlockPlugin {
                 error_log("SupportBlock: HookRegistry existe, intentando registrar hooks antiguos");
                 // Registrar el hook para agregar JavaScript y CSS
                 Hook::add('TemplateManager::display', array($this, 'handleTemplateDisplay'));
+                // También registramos un hook específico para el layouto backend
+                Hook::add('Templates::Common::Header::Wrapper', array($this, 'injectSupportResources'));
                 error_log("SupportBlock: Hooks registrados");
             } else {
                 error_log("SupportBlock: No se pudo encontrar HookRegistry");
@@ -78,26 +80,48 @@ class SupportBlockPlugin extends BlockPlugin {
             $isAdmin = $userRoleDao->userHasRole(CONTEXT_SITE, $user->getId(), \PKP\security\Role::ROLE_ID_SITE_ADMIN);
             $isManager = ($context && $userRoleDao->userHasRole($context->getId(), $user->getId(), \PKP\security\Role::ROLE_ID_MANAGER));
             
-            // Solo agregar recursos para administradores y gestores en el contexto "backend"
-            if (($isAdmin || $isManager) && $this->_isBackendContext($request, $template)) {
+            // Solo agregar recursos para administradores y gestores
+            if (($isAdmin || $isManager)) {
+                // Esto asegura que aunque la plantilla sea diferente, vamos a añadir los recursos
+                // siempre que estemos en un contexto de backend
+                $this->addSupportResourcesIfBackend($templateMgr, $request, $template);
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Hook callback para inyectar recursos en cualquier plantilla del backend
+     * @param $hookName string
+     * @param $params array
+     * @return boolean
+     */
+    function injectSupportResources($hookName, $params) {
+        $templateMgr = $params[0] ?? null;
+        $output = &$params[1];
+        
+        $request = Application::get()->getRequest();
+        $user = $request->getUser();
+        
+        if ($user && $templateMgr) {
+            $context = $request->getContext();
+            $userRoleDao = \PKP\db\DAORegistry::getDAO('RoleDAO');
+            $isAdmin = $userRoleDao->userHasRole(CONTEXT_SITE, $user->getId(), \PKP\security\Role::ROLE_ID_SITE_ADMIN);
+            $isManager = ($context && $userRoleDao->userHasRole($context->getId(), $user->getId(), \PKP\security\Role::ROLE_ID_MANAGER));
+            
+            if ($isAdmin || $isManager) {
                 $baseUrl = $request->getBaseUrl();
                 $pluginPath = $this->getPluginPath();
                 
-                // Agregar JavaScript para insertar el menú
-                $templateMgr->addJavaScript(
-                    'supportBlockScript',
-                    $baseUrl . '/' . $pluginPath . '/js/supportMenu.js',
-                    ['contexts' => ['backend']]
-                );
+                // Injección directa de los scripts en el HTML
+                $scriptUrl = $baseUrl . '/' . $pluginPath . '/js/supportMenu.js';
+                $cssUrl = $baseUrl . '/' . $pluginPath . '/css/supportMenu.css';
                 
-                // Agregar estilos CSS
-                $templateMgr->addStyleSheet(
-                    'supportBlockStyles',
-                    $baseUrl . '/' . $pluginPath . '/css/supportMenu.css',
-                    ['contexts' => ['backend']]
-                );
+                $output .= "<link rel=\"stylesheet\" type=\"text/css\" href=\"{$cssUrl}\" />\n";
+                $output .= "<script type=\"text/javascript\" src=\"{$scriptUrl}\"></script>\n";
                 
-                error_log("SupportBlock: Script y estilos añadidos para la plantilla: $template");
+                error_log("SupportBlock: Recursos inyectados directamente en el HTML");
             }
         }
         
@@ -105,42 +129,32 @@ class SupportBlockPlugin extends BlockPlugin {
     }
 
     /**
-     * Determine if we're in a backend context
+     * Helper method to add support resources if we're in a backend context
+     * @param $templateMgr TemplateManager
      * @param $request Request
      * @param $template string Template name
-     * @return boolean
      */
-    private function _isBackendContext($request, $template) {
-        // Comprobar si estamos en una ruta del panel de administración
-        $requestPath = $request->getRequestPath();
-        if (strpos($requestPath, '/management/') !== false || 
-            strpos($requestPath, '/submissions') !== false || 
-            strpos($requestPath, '/workflow') !== false || 
-            strpos($requestPath, '/stats/') !== false) {
-            return true;
-        }
+    private function addSupportResourcesIfBackend($templateMgr, $request, $template) {
+        // Siempre añadimos los recursos, independientemente de la plantilla
+        // Esta es la solución más segura para asegurar que nuestro script esté disponible
+        $baseUrl = $request->getBaseUrl();
+        $pluginPath = $this->getPluginPath();
         
-        // Alternativamente, comprobar si la plantilla es del backend
-        if (strpos($template, 'management/') === 0 || 
-            strpos($template, 'dashboard/') === 0 || 
-            strpos($template, 'workflow/') === 0 || 
-            strpos($template, 'stats/') === 0) {
-            return true;
-        }
+        // Agregar JavaScript para insertar el menú
+        $templateMgr->addJavaScript(
+            'supportBlockScript',
+            $baseUrl . '/' . $pluginPath . '/js/supportMenu.js',
+            ['contexts' => ['backend'], 'priority' => STYLE_SEQUENCE_LAST]
+        );
         
-        // Una verificación adicional basada en el contexto actual
-        $router = $request->getRouter();
-        if ($router && method_exists($router, 'getHandler')) {
-            $handler = $router->getHandler();
-            if ($handler && (is_a($handler, 'ManagerHandler') || 
-                            is_a($handler, 'DashboardHandler') || 
-                            is_a($handler, 'WorkflowHandler') || 
-                            is_a($handler, 'StatisticsHandler'))) {
-                return true;
-            }
-        }
+        // Agregar estilos CSS
+        $templateMgr->addStyleSheet(
+            'supportBlockStyles',
+            $baseUrl . '/' . $pluginPath . '/css/supportMenu.css',
+            ['contexts' => ['backend'], 'priority' => STYLE_SEQUENCE_LAST]
+        );
         
-        return false;
+        error_log("SupportBlock: Script y estilos añadidos para la plantilla: $template");
     }
 
     /**
