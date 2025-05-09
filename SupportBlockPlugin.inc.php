@@ -16,6 +16,8 @@ namespace APP\plugins\blocks\supportBlock;
 use PKP\plugins\BlockPlugin;
 use APP\core\Application;
 use PKP\plugins\Hook;
+use PKP\db\DAORegistry;
+use PKP\security\Role;
 
 class SupportBlockPlugin extends BlockPlugin {
     /**
@@ -53,36 +55,41 @@ class SupportBlockPlugin extends BlockPlugin {
      * @return boolean
      */
     function handleTemplateDisplay($hookName, $args) {
-        $templateMgr = $args[0];
-        $template = $args[1];
-        
-        // Solo agregar recursos en páginas de administración
-        if (strpos($template, 'management') !== false || 
-            strpos($template, 'admin') !== false || 
-            strpos($template, 'settings') !== false || 
-            strpos($template, 'submission') !== false) {
-            
-            $request = Application::get()->getRequest();
-            $baseUrl = $request->getBaseUrl();
-            $pluginPath = $this->getPluginPath();
-            
-            // Agregar JavaScript para insertar el menú
-            $templateMgr->addJavaScript(
-                'supportBlockScript',
-                $baseUrl . '/' . $pluginPath . '/js/supportMenu.js',
-                array('contexts' => 'backend')
-            );
-            
-            // Agregar estilos CSS
-            $templateMgr->addStyleSheet(
-                'supportBlockStyles',
-                $baseUrl . '/' . $pluginPath . '/css/supportMenu.css',
-                array('contexts' => 'backend')
-            );
-        }
-        
-        return false;
-    }
+		$templateMgr = $args[0];
+		
+		$request = Application::get()->getRequest();
+		$context = $request->getContext();
+		$user = $request->getUser();
+		
+		// Verificar que el usuario tiene rol de administrador o gestor
+		if ($user) {
+			$userRoleDao = \PKP\db\DAORegistry::getDAO('RoleDAO');
+			$isAdmin = $userRoleDao->userHasRole(CONTEXT_SITE, $user->getId(), \PKP\security\Role::ROLE_ID_SITE_ADMIN);
+			$isManager = ($context && $userRoleDao->userHasRole($context->getId(), $user->getId(), \PKP\security\Role::ROLE_ID_MANAGER));
+			
+			// Solo agregar recursos para administradores y gestores
+			if ($isAdmin || $isManager) {
+				$baseUrl = $request->getBaseUrl();
+				$pluginPath = $this->getPluginPath();
+				
+				// Agregar JavaScript para insertar el menú
+				$templateMgr->addJavaScript(
+					'supportBlockScript',
+					$baseUrl . '/' . $pluginPath . '/js/supportMenu.js',
+					array('contexts' => 'backend')
+				);
+				
+				// Agregar estilos CSS
+				$templateMgr->addStyleSheet(
+					'supportBlockStyles',
+					$baseUrl . '/' . $pluginPath . '/css/supportMenu.css',
+					array('contexts' => 'backend')
+				);
+			}
+		}
+		
+		return false;
+	}
 
     /**
      * @copydoc BlockPlugin::getContents
