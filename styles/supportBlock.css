@@ -1,0 +1,41 @@
+/**
+ * @file plugins/blocks/supportBlock/styles/supportBlock.css
+ *
+ * Copyright (c) 2023 Paideia Studio
+ * Distributed under the GNU GPL v3.
+ *
+ * Estilos para el bloque de soporte
+ */
+
+.pkp_block.block_support .content ul {
+    padding: 0;
+    margin: 0;
+    list-style-type: none;
+}
+
+.pkp_block.block_support .content li {
+    padding: 0.5em 0;
+}
+
+.pkp_block.block_support .support_icon {
+    display: inline-block;
+    width: 20px;
+    margin-right: 5px;
+    text-align: center;
+}
+
+.pkp_block.block_support .hosted_by {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #ddd;
+    font-size: 0.85em;
+}
+
+.pkp_block.block_support .hosted_by span {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.pkp_block.block_support .hosted_by strong {
+    font-weight: 600;
+}
