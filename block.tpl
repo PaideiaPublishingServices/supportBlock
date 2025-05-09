@@ -1,14 +1,14 @@
 {**
  * plugins/blocks/supportBlock/block.tpl
  *
- * Copyright (c) 2023 Paideia Studio
+ * Copyright (c) 2023-2025 Paideia Studio
  * Distributed under the GNU GPL v3.
  *
  * Bloque de soporte técnico
  *}
 
 <div class="pkp_block block_support">
-	<span class="title">{translate key="plugins.blocks.supportBlock.title"}</span>
+	<h2 class="title">{translate key="plugins.blocks.supportBlock.title"}</h2>
 	<div class="content">
 		<ul>
 			<li class="support_ticket">
