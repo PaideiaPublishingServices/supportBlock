@@ -7,7 +7,8 @@
  * @brief Estilos para el menú de soporte
  */
 
- .support-menu-item {
+/* Estilos para el menú lateral (enfoque original) */
+.support-menu-item {
     padding: 0;
     margin: 0;
     list-style: none;
@@ -32,4 +33,32 @@
 .support-icon {
     margin-right: 12px;
     color: #007ab2;
+}
+
+/* Estilos para el botón en la cabecera (nuevo enfoque) */
+.support-header-item {
+    display: inline-block;
+    margin-right: 10px;
+    vertical-align: middle;
+}
+
+.support-header-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #007ab2 !important;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.support-header-link:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+}
+
+.support-header-icon {
+    font-size: 20px;
+    color: inherit;
 }

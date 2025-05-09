@@ -4,31 +4,73 @@
  * Copyright (c) 2023-2025 Paideia Studio
  * Distributed under the GNU GPL v3.
  *
- * @brief Script para insertar el menú de soporte en el panel de administración
+ * @brief Script para insertar el enlace de soporte técnico
  */
 
 (function() {
     // URL de soporte
     const supportUrl = 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3';
     
-    // Función para crear el elemento de soporte
-    function createSupportItem() {
-        console.log('SupportBlock: Intentando insertar el menú de soporte...');
+    // ID único para evitar múltiples inicializaciones
+    const SUPPORT_INITIALIZED_KEY = 'paideia_support_initialized';
+    
+    // Si ya se inicializó, salir
+    if (window[SUPPORT_INITIALIZED_KEY]) return;
+    window[SUPPORT_INITIALIZED_KEY] = true;
+    
+    // Intentar ambos métodos: menú lateral y cabecera
+    function createSupportElements() {
+        // Intentar insertar en la cabecera (nueva ubicación)
+        tryInsertHeaderSupport();
         
-        // Intentar encontrar el menú de navegación principal
-        const navMenu = document.querySelector('.app__nav');
-        if (!navMenu) {
-            console.log('SupportBlock: No se encontró el menú de navegación principal');
+        // También intentar el método original (menú lateral)
+        tryInsertMenuSupport();
+    }
+    
+    // Función para insertar soporte en la cabecera
+    function tryInsertHeaderSupport() {
+        // Buscar el área de header donde están los iconos (campana y usuario)
+        const headerActions = document.querySelector('.app__header .app__headerActions');
+        
+        if (!headerActions) {
             return false;
         }
         
-        // Verificar si ya existe el elemento de soporte para evitar duplicados
-        if (document.querySelector('.support-menu-item')) {
-            console.log('SupportBlock: El menú de soporte ya existe');
+        // Verificar si ya existe
+        if (document.querySelector('.support-header-item')) {
             return true;
         }
         
-        // Crear el elemento de menú
+        // Crear el elemento de soporte para la cabecera
+        const supportItem = document.createElement('div');
+        supportItem.className = 'support-header-item';
+        supportItem.innerHTML = `
+            <a href="${supportUrl}" target="_blank" class="support-header-link" title="Soporte Técnico">
+                <span class="fa fa-life-ring support-header-icon"></span>
+            </a>
+        `;
+        
+        // Insertar al inicio de las acciones de cabecera
+        headerActions.insertBefore(supportItem, headerActions.firstChild);
+        console.log('SupportBlock: Elemento de soporte añadido a la cabecera');
+        
+        return true;
+    }
+    
+    // Función original para insertar en el menú lateral
+    function tryInsertMenuSupport() {
+        // Intentar encontrar el menú de navegación principal
+        const navMenu = document.querySelector('.app__nav');
+        if (!navMenu) {
+            return false;
+        }
+        
+        // Verificar si ya existe
+        if (document.querySelector('.support-menu-item')) {
+            return true;
+        }
+        
+        // Crear el elemento para el menú
         const supportItem = document.createElement('li');
         supportItem.className = 'support-menu-item';
         supportItem.innerHTML = `
@@ -38,58 +80,53 @@
             </a>
         `;
         
-        // Agregar al menú de navegación
+        // Agregar al menú
         navMenu.appendChild(supportItem);
-        console.log('SupportBlock: Menú de soporte insertado correctamente');
+        console.log('SupportBlock: Elemento de soporte añadido al menú lateral');
         
         return true;
     }
     
-    // Función principal para monitorear cambios y insertar el menú
-    function initSupportMenu() {
+    // Configurar monitoreo continuo para detectar cambios en el DOM
+    function setupMonitoring() {
         // Intentar insertar inmediatamente
-        createSupportItem();
+        createSupportElements();
         
-        // También configurar un intervalo para intentar periódicamente
-        // Esto es útil para aplicaciones SPA que pueden recargar el DOM
-        setInterval(createSupportItem, 2000);
+        // Configurar intervalo para verificar periódicamente (cada 2 segundos)
+        setInterval(createSupportElements, 2000);
         
-        // Monitorear cambios en la URL para SPA
+        // Observar cambios en el DOM para insertar tan pronto como sea posible
+        const observer = new MutationObserver(function() {
+            createSupportElements();
+        });
+        
+        // Observar todo el documento
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Detectar cambios de URL (navegación SPA)
         let lastUrl = location.href;
-        const urlObserver = new MutationObserver(function() {
+        setInterval(function() {
             if (lastUrl !== location.href) {
                 lastUrl = location.href;
-                setTimeout(createSupportItem, 500);
+                setTimeout(createSupportElements, 500);
             }
-        });
-        
-        urlObserver.observe(document, { subtree: true, childList: true });
-        
-        // Monitorear cambios en el DOM específicamente para el menú de navegación
-        const navObserver = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.addedNodes && mutation.addedNodes.length > 0) {
-                    for (let i = 0; i < mutation.addedNodes.length; i++) {
-                        const node = mutation.addedNodes[i];
-                        if (node.classList && (node.classList.contains('app__nav') || 
-                            (node.querySelector && node.querySelector('.app__nav')))) {
-                            setTimeout(createSupportItem, 100);
-                            return;
-                        }
-                    }
-                }
-            });
-        });
-        
-        navObserver.observe(document.body, { childList: true, subtree: true });
+        }, 500);
         
         console.log('SupportBlock: Sistema de monitoreo inicializado');
     }
     
     // Iniciar cuando el DOM esté listo
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initSupportMenu);
+        document.addEventListener('DOMContentLoaded', setupMonitoring);
     } else {
-        initSupportMenu();
+        setupMonitoring();
     }
+    
+    // También intentar cuando la ventana termine de cargar
+    window.addEventListener('load', function() {
+        setTimeout(createSupportElements, 500);
+    });
 })();
