@@ -1,7 +1,7 @@
 /**
  * @file plugins/blocks/supportBlock/SupportBlockPlugin.inc.php
  *
- * Copyright (c) 2023 Paideia Studio
+ * Copyright (c) 2023-2025 Paideia Studio
  * Distributed under the GNU GPL v3.
  *
  * @class SupportBlockPlugin
@@ -10,7 +10,13 @@
  * @brief Plugin para añadir un bloque de soporte técnico en el sidebar
  */
 
-import('lib.pkp.classes.plugins.BlockPlugin');
+namespace APP\plugins\blocks\supportBlock;
+
+use PKP\plugins\BlockPlugin;
+use PKP\db\DAORegistry;
+use APP\core\Application;
+use APP\facades\Repo;
+use PKP\security\Role;
 
 class SupportBlockPlugin extends BlockPlugin {
 	/**
@@ -64,26 +70,24 @@ class SupportBlockPlugin extends BlockPlugin {
 		// Verificar si el usuario tiene rol de administrador o gestor
 		if (!$user) return '';
 		
-		$userRoleDao = DAORegistry::getDAO('RoleDAO');
-		$roleIds = array(ROLE_ID_MANAGER, ROLE_ID_SITE_ADMIN);
+		$contextId = $request->getContext() ? $request->getContext()->getId() : CONTEXT_SITE;
 		$hasRole = false;
 		
-		foreach ($roleIds as $roleId) {
-			$hasRole = $userRoleDao->userHasRole(
-				$request->getContext()->getId(),
-				$user->getId(),
-				$roleId
-			);
-			if ($hasRole) break;
+		// Comprobar si el usuario tiene rol de administrador del sitio
+		$hasRole = Repo::user()->userHasRole($user->getId(), Role::ROLE_ID_SITE_ADMIN, CONTEXT_SITE);
+		
+		// Si no es administrador del sitio, comprobar si es gestor
+		if (!$hasRole && $contextId != CONTEXT_SITE) {
+			$hasRole = Repo::user()->userHasRole($user->getId(), Role::ROLE_ID_MANAGER, $contextId);
 		}
 		
 		// Solo mostrar el bloque si el usuario tiene uno de los roles necesarios
 		if (!$hasRole) return '';
 		
 		// Cargar la plantilla del bloque
-		$templateMgr->assign(array(
+		$templateMgr->assign([
 			'supportUrl' => 'https://desk.paideiastudio.net/helpdesk/soporte-tecnico-3'
-		));
+		]);
 		
 		return parent::getContents($templateMgr, $request);
 	}
