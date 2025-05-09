@@ -1,3 +1,4 @@
+<?php
 /**
  * @file plugins/blocks/supportBlock/SupportBlockPlugin.inc.php
  *
@@ -13,10 +14,8 @@
 namespace APP\plugins\blocks\supportBlock;
 
 use PKP\plugins\BlockPlugin;
-use PKP\db\DAORegistry;
-use APP\core\Application;
-use APP\facades\Repo;
 use PKP\security\Role;
+use APP\facades\Repo;
 
 class SupportBlockPlugin extends BlockPlugin {
 	/**
@@ -33,30 +32,6 @@ class SupportBlockPlugin extends BlockPlugin {
 	 */
 	function getDescription() {
 		return __('plugins.blocks.supportBlock.description');
-	}
-
-	/**
-	 * Get the plugin path.
-	 * @return String
-	 */
-	function getPluginPath() {
-		return $this->getPluginPath();
-	}
-
-	/**
-	 * Determine whether the plugin can be enabled.
-	 * @return boolean
-	 */
-	function getCanEnable() {
-		return true;
-	}
-
-	/**
-	 * Determine whether the plugin should be hidden.
-	 * @return boolean
-	 */
-	function getHideManagement() {
-		return false;
 	}
 
 	/**
