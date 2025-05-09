@@ -1,5 +1,4 @@
 <?php
-
 /**
  * @defgroup plugins_blocks_supportBlock Support Block Plugin
  */
@@ -12,11 +11,9 @@
  *
  * @ingroup plugins_blocks_supportBlock
  * @brief Wrapper para el plugin de bloque de soporte.
- *
  */
 
 require_once('SupportBlockPlugin.inc.php');
 
 return new \APP\plugins\blocks\supportBlock\SupportBlockPlugin();
-
 ?>
